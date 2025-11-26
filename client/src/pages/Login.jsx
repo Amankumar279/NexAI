@@ -29,6 +29,7 @@ const Login = () => {
 
 
   return (
+    <div className="w-full h-screen flex items-center justify-center bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900">
     <form onSubmit={handleSubmit} className="flex flex-col gap-4 m-auto items-start p-8 py-12 w-80 sm:w-[352px] text-gray-300 rounded-xl shadow-2xl border border-cyan-400/30 bg-gradient-to-br from-gray-900 via-gray-900 to-gray-800 backdrop-blur-xl">
             <p className="text-3xl font-bold m-auto bg-gradient-to-r from-cyan-400 to-blue-500 bg-clip-text text-transparent">
                 NexAI {state === "login" ? "Login" : "Sign Up"}
@@ -60,6 +61,7 @@ const Login = () => {
                 {state === "register" ? "Create Account" : "Login"}
             </button>
         </form>
+</div>
   )
 }
 
