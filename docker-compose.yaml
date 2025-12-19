@@ -22,4 +22,6 @@ services:
       volumes:
         - ./client:/app
         - /app/node_modules
+      depends_on:
+        - server
       restart: unless-stopped

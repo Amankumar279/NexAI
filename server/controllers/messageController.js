@@ -8,39 +8,72 @@ import openai from '../configs/openai.js'
 // Text-based AI Chat Message Controller
 export const textMessageController = async (req, res) => {
     try {
-        const userId = req.user._id
-
-         // Check credits
-        if(req.user.credits < 1){
-            return res.json({success: false, message: "You don't have enough credits to use this feature"})
-        }
-
-        const {chatId, prompt} = req.body
-
-        const chat = await Chat.findOne({userId, _id: chatId})
-        chat.messages.push({role: "user", content: prompt, timestamp: Date.now(), isImage: false})
-
-        const { choices } = await openai.chat.completions.create({
+      const userId = req.user._id;
+  
+      if (req.user.credits < 1) {
+        return res.status(400).json({
+          success: false,
+          message: "You don't have enough credits",
+        });
+      }
+  
+      const { chatId, prompt } = req.body;
+  
+      const chat = await Chat.findOne({ userId, _id: chatId });
+      if (!chat) {
+        return res.status(404).json({
+          success: false,
+          message: "Chat not found",
+        });
+      }
+  
+      // Save user message
+      chat.messages.push({
+        role: "user",
+        content: prompt,
+        timestamp: Date.now(),
+        isImage: false,
+      });
+  
+      // ⏳ IMPORTANT: throttle Gemini
+      await sleep(800);
+  
+      const completion = await openai.chat.completions.create({
         model: "gemini-2.0-flash",
-        messages: [
-            {
-                role: "user",
-                content: prompt,
-            },
-        ],
-    });
-
-    const reply = {...choices[0].message, timestamp: Date.now(), isImage: false}
-    res.json({success: true, reply})
-
-    chat.messages.push(reply)
-    await chat.save()
-    await User.updateOne({_id: userId}, {$inc: {credits: -1}})
-
+        messages: [{ role: "user", content: prompt }],
+      });
+  
+      const reply = {
+        role: "assistant",
+        content: completion.choices[0].message.content,
+        timestamp: Date.now(),
+        isImage: false,
+      };
+  
+      // Save first → then respond
+      chat.messages.push(reply);
+      await chat.save();
+  
+      await User.updateOne(
+        { _id: userId, credits: { $gte: 1 } },
+        { $inc: { credits: -1 } }
+      );
+  
+      return res.json({ success: true, reply });
     } catch (error) {
-        res.json({success: false, message: error.message})
+      if (error.response?.status === 429) {
+        return res.status(429).json({
+          success: false,
+          message: "Too many requests. Please slow down.",
+        });
+      }
+  
+      return res.status(500).json({
+        success: false,
+        message: error.message,
+      });
     }
-}
+  };
 
 // Image Generation Message Controller
 export const imageMessageController = async (req, res) => {
