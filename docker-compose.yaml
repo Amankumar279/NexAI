@@ -1,0 +1,25 @@
+services:
+  server:
+    build: ./server
+    ports:
+      - "8080:8080"
+    # env_file:
+      # - ./server/.env
+    environment:
+      - NODE_ENV=production
+      - PORT=8080
+    volumes:
+      - ./server:/app
+    restart: unless-stopped
+
+  client:
+      build: ./client
+      ports:
+        - "5173:5173"
+      environment:
+        - NODE_ENV=development
+        - PORT=5173
+      volumes:
+        - ./client:/app
+        - /app/node_modules
+      restart: unless-stopped
