@@ -21,12 +21,13 @@ app.use(express.json())
 
 // Routes
 app.get('/', (req, res)=> res.send('Server is Live!'))
+app.get('/health', (req, res)=> res.send('Server is healthy!'))
 app.use('/api/user', userRouter)
 app.use('/api/chat', chatRouter)
 app.use('/api/message', messageRouter)
 app.use('/api/credit', creditRouter)
 
-const PORT = process.env.PORT || 3000
+const PORT = process.env.PORT || 8080
 
 app.listen(PORT, ()=>{
     console.log(`Server is running on port!!${PORT}`)
